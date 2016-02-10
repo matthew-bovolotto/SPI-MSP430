@@ -2,7 +2,7 @@
 #define LED RED_LED
 
 void spiSetup();
-int spiReceive_u16();
+unsigned int spiReceive_u16();
 
 void setup()
 {
@@ -11,12 +11,22 @@ void setup()
   pinMode(LED, OUTPUT);
 }
 
+int checkvalue = 0;
+int array[9];
+
 void loop(){
-  int checkvalue = ((P2IN & BIT0));
-  if(checkvalue == 1){
-    checkvalue = spiReceive_u16();  
-    Serial.println(checkvalue);
+  for(int j=0; j < 9; j = j){
+    if((P2IN & BIT0) == 1){
+      checkvalue = spiReceive_u16(); 
+      array[j] = checkvalue;
+      j++; 
+    }
+  } 
+  for(int i = 0; i < 9; i++){
+    Serial.print(array[i]);
+    Serial.print(", ");
   }
+  Serial.println();
 }
 
 
@@ -27,29 +37,29 @@ void spiSetup(){
    P2DIR &= ~BIT0;
 }
 
-int spiReceive_u16(){
-  int value = 0;
+unsigned int spiReceive_u16(){
+  unsigned int value = 0;
   int timeout = 0;
   P1OUT |= BIT5;
   for(int i = 0; i < 16; i++){
     timeout=0;
     while(((P1IN & BIT3) >> 3) == 0){
       timeout+=1;
-      if(timeout > 40){
+      if(timeout > 1000){
         P1OUT &= ~BIT5;
+        Serial.println("failure");
         return 0;
       }
-      delayMicroseconds(100);  
     }
-    value |= (((P1IN & BIT4) >> 4) << i-1);
+    value += (((P1IN & BIT4) >> 4) << i-1);
     timeout=0;
     while(((P1IN & BIT3) >> 3) == 1){
       timeout+=1;
-      if(timeout > 40){
+      if(timeout > 1000){
         P1OUT &= ~BIT5;
+        Serial.println("failure");
         return 0;
       }
-      delayMicroseconds(100);  
     }
   }
   P1OUT &= ~BIT5;

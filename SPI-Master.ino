@@ -1,7 +1,7 @@
 #include <msp430.h>
 
 void spiSetup();
-void spiSend_u16(int data);
+void spiSend_u16(unsigned int data);
 
 //Master Library
 
@@ -21,10 +21,17 @@ void setup() {
 
 // the loop routine runs over and over again forever:
 void loop() {
+  spiSend_u16(0);
+  spiSend_u16(1);
+  spiSend_u16(2);
+  spiSend_u16(3);
+  spiSend_u16(4);
+  spiSend_u16(5);
+  spiSend_u16(6);
+  spiSend_u16(7);
+  spiSend_u16(8);
+  Serial.println("successful transfer");
   delay(1000);
-  spiSend_u16(63);
-  spiSend_u16(256);
-  spiSend_u16(30000);
 }
 
 //----------------------------------------------------------------------------
@@ -42,7 +49,7 @@ void spiSetup(){
   Serial.println("SPI Setup successful");
 }
 
-void spiSend_u16(int data){
+void spiSend_u16(unsigned int data){
 
 /* Function writes a 16 bit character to the slave driver
 
@@ -50,21 +57,18 @@ void spiSend_u16(int data){
 2. Wait until acknowledged by the 
 */
   int timeout = 0;
-  Serial.println("SPI Transmit Started");
-  Serial.print("Value tranfer:");
-  Serial.println(data);
   P2OUT |= BIT0;
   timeout=0;
   while(((P1IN & BIT5) >> 5) == 0){
     timeout+=1;
-    if(timeout > 16){
+    if(timeout > 160){
       P2OUT &= ~BIT0;
+      Serial.println("error: timeout");
       return;
     }
-    delayMicroseconds(100);  // wait for acknowledgement from slave
-    Serial.println("waiting for response");
+    delayMicroseconds(10);  // wait for acknowledgement from slave
   } 
-  int output = 0; 
+  unsigned int output = 0; 
   for(int i = 0; i < 16; i++){
     P1OUT &= ~BIT3;  
     output = data & 1;
@@ -73,11 +77,11 @@ void spiSend_u16(int data){
     }else{
       P1OUT &= ~BIT4;
     }
-    delay(1);
+    delayMicroseconds(10);
     P1OUT |= BIT3;
-    delay(1);
+    delayMicroseconds(10);
     data = data >> 1;
   }
-  Serial.println("Transfer Completed");
   P2OUT &= ~BIT0;
+  delayMicroseconds(5);
 }
