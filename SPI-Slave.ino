@@ -12,35 +12,46 @@ void setup()
 }
 
 void loop(){
-  int checkvalue = ((P1IN & BIT1) >> 1);
+  int checkvalue = ((P2IN & BIT0));
   if(checkvalue == 1){
     checkvalue = spiReceive_u16();  
     Serial.println(checkvalue);
   }
-  delay(10000);
 }
 
 
 void spiSetup(){
-   P1DIR &= ~BIT1 + ~BIT3 + ~BIT4;
+   P1DIR &= ~BIT3 + ~BIT4;
    P1DIR |= BIT5;
    P1OUT &= ~BIT5;
+   P2DIR &= ~BIT0;
 }
 
 int spiReceive_u16(){
   int value = 0;
+  int timeout = 0;
   P1OUT |= BIT5;
-  delayMicroseconds(300);
-  P1OUT &= ~BIT5;
   for(int i = 0; i < 16; i++){
+    timeout=0;
     while(((P1IN & BIT3) >> 3) == 0){
-      delayMicroseconds(1);
+      timeout+=1;
+      if(timeout > 40){
+        P1OUT &= ~BIT5;
+        return 0;
+      }
+      delayMicroseconds(100);  
     }
-    value += ((P1IN & BIT4) >> 4);
-    value = value << 1;
+    value |= (((P1IN & BIT4) >> 4) << i-1);
+    timeout=0;
     while(((P1IN & BIT3) >> 3) == 1){
-      delayMicroseconds(1);
+      timeout+=1;
+      if(timeout > 40){
+        P1OUT &= ~BIT5;
+        return 0;
+      }
+      delayMicroseconds(100);  
     }
   }
+  P1OUT &= ~BIT5;
   return value;
 }
