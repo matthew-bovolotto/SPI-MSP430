@@ -2,7 +2,7 @@
 #define LED RED_LED
 
 void spiSetup();
-int spiSend_u16(int data);
+void spiSend_u16(int data);
 
 //Master Library
 
@@ -12,17 +12,19 @@ int dataout;
 void setup() {                
   // initialize the digital pin as an output.
   Serial.begin(9600);
-  Serial.println("hello world!");
+  Serial.println("X---------------------------------------------X");
+  Serial.println("Board Start Successful");
+  Serial.println("X---------------------------------------------X");
+  Serial.println("Serial Opened Succesfully");
+  Serial.println("X---------------------------------------------X");
   pinMode(LED, OUTPUT);
-
   spiSetup();
 }
 
 // the loop routine runs over and over again forever:
 void loop() {
-  delay(1000);
-  dataout = (P1IN & BIT5) >> 5;
-  Serial.println(dataout);
+  delay(10000);
+  spiSend_u16(63);
 }
 
 //----------------------------------------------------------------------------
@@ -39,7 +41,7 @@ void spiSetup(){
   Serial.println("SPI Setup successful");
 }
 
-int spiSend_u16(int data){
+void spiSend_u16(int data){
 
 /* Function writes a 16 bit character to the slave driver
 
@@ -48,22 +50,27 @@ int spiSend_u16(int data){
 */
 
   Serial.println("SPI Transmit Started");
-  Serial.println("Value tranfer:" + data);
-  
+  Serial.print("Value tranfer:");
+  Serial.println(data);
+  P1OUT |= BIT2;
   while(((P1IN & BIT5) >> 5) == 0){
     delayMicroseconds(100);  // wait for acknowledgement from slave
+    Serial.println("waiting for response");
   }
+  delay(5);
   int output = 0; 
   for(int i = 0; i < 8; i++){
-  P1OUT |= BIT3;  
+    P1OUT &= ~BIT3;  
     output = data & 1;
-    if(output == 1){
+     if(output == 1){
       P1OUT |= BIT4;
     }else{
       P1OUT &= ~BIT4;
     }
-  P1OUT &= ~BIT3;
-  delayMicroseconds(100);
-  data = data >> 1;
+    delay(1);
+    P1OUT |= BIT3;
+    delay(1);
+    data = data >> 1;
   }
+ P1OUT &= ~BIT2; 
 }
