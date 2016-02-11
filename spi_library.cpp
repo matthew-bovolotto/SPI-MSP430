@@ -1,3 +1,4 @@
+#include <Energia.h>
 #include <spi_library.h>
 #include <msp430.h>
 
@@ -128,7 +129,7 @@ unsigned int spiReceive_u16(){
     watchdog=0; // reset watchdog
     while(((P1IN & BIT3) >> 3) == 1){ // check for falling edge of clock
       watchdog+=1;
-      if(twatchdog > 1000){   //check watchdog
+      if(watchdog > 1000){   //check watchdog
         P1OUT &= ~BIT5; //set acknowledge know in timeout case
         #ifdef SERIAL
           Serial.println("error: watchdog timeout");

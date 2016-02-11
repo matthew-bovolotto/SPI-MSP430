@@ -1,5 +1,6 @@
 #include <msp430.h>
 #include <spi_library.h>
+// #undef SERIAL
 
 // the setup routine runs once when you press reset:
 void setup() {                
