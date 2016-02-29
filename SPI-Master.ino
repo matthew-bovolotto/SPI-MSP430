@@ -2,6 +2,7 @@
 #include <spi_library.h>
 // #undef SERIAL
 
+
 // the setup routine runs once when you press reset:
 void setup() {                
   // initialize the digital pin as an output.
@@ -13,19 +14,21 @@ void setup() {
     Serial.println("Serial Opened Succesfully");
     Serial.println("X---------------------------------------------X");
   #endif
-  spi_Master_Setup();  
+
 }
 
+spi_Master spi;
+
 void loop() {
-  spiSend_u16(0);
-  spiSend_u16(1);
-  spiSend_u16(2);
-  spiSend_u16(3);
-  spiSend_u16(4);
-  spiSend_u16(5);
-  spiSend_u16(6);
-  spiSend_u16(7);
-  spiSend_u16(8);
+  spi.spiSend_u16(0);
+  spi.spiSend_u16(1);
+  spi.spiSend_u16(2);
+  spi.spiSend_u16(3);
+  spi.spiSend_u16(4);
+  spi.spiSend_u16(5);
+  spi.spiSend_u16(6);
+  spi.spiSend_u16(7);
+  spi.spiSend_u16(8);
   #ifdef SERIAL 
     Serial.println("successful transfer");
   #endif  

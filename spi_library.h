@@ -1,9 +1,15 @@
-#include <msp430.h>
 #define SERIAL
 
-void spi_Master_Setup();
-void spiSend_u16(unsigned int data);
+class spi_Master{
+  public: 
+    spi_Master();
+    void spi_Master_Setup();
+    void spiSend_u16(unsigned int spi_data_out);
+};
 
-void spi_Slave_Setup();
-unsigned int spiReceive_u16();
-
+class spi_Slave{
+  public:
+    spi_Slave();
+    void spi_Slave_Setup();
+    unsigned int spiReceive_u16();
+};

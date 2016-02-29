@@ -1,6 +1,6 @@
 #include <Energia.h>
-#include <spi_library.h>
 #include <msp430.h>
+#include <spi_library.h>
 
 /*************************************************
 Matthew Bovolotto -- February 10th 2016
@@ -20,7 +20,11 @@ as well as different types
 
 // #undef SERIAL
 
-void spi_Master_Setup(){
+spi_Master::spi_Master(){
+  spi_Master_Setup();
+}
+
+void spi_Master::spi_Master_Setup(){
   /* Begin Setup of Pseudo SPI
    P1.3 - CLK
    P1.4 - MOSI
@@ -36,7 +40,7 @@ void spi_Master_Setup(){
   #endif
 }
 
-void spiSend_u16(unsigned int spi_data_out){
+void spi_Master::spiSend_u16(unsigned int spi_data_out){
   
   /* Function writes a 16 bit character to the slave driver
 
@@ -80,7 +84,11 @@ void spiSend_u16(unsigned int spi_data_out){
   delayMicroseconds(5);
 }
 
-void spi_Slave_Setup(){
+spi_Slave::spi_Slave(){
+  spi_Slave_Setup();
+}
+
+void spi_Slave::spi_Slave_Setup(){
   
   /* Begin Setup of Pseudo SPI
    P1.3 - CLK
@@ -94,7 +102,7 @@ void spi_Slave_Setup(){
    P2DIR &= ~BIT0; // setup pin 2.0 as SS
 }
 
-unsigned int spiReceive_u16(){
+unsigned int spi_Slave::spiReceive_u16(){
 
   /* Function reads a 16 bit character to the slave driver
   ***** GENERALLY USED WITH AN INTERRUPT ENABLED ON THE SLAVE *****
