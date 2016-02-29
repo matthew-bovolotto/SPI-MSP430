@@ -3,7 +3,7 @@
 #include <spi_library.h>
 
 /*************************************************
-Matthew Bovolotto -- February 10th 2016
+Matthew Bovolotto -- February 29th 2016
 
 Pseudo SPI library for the MSP430(G2253) MCU
 
@@ -51,7 +51,7 @@ void spi_Master::spi_Master_Setup(){
   #endif
 }
 
-void spi_Master::spiSend_u16(unsigned int spi_data_out){
+void spi_Master::spiSend(unsigned int spi_data_out, int length){
   
   /* Function writes a 16 bit character to the slave driver
 
@@ -78,7 +78,7 @@ void spi_Master::spiSend_u16(unsigned int spi_data_out){
   
   unsigned int output = 0; // setup masked output variable
 
-  for(int i = 0; i < 16; i++){ 
+  for(int i = 0; i < length; i++){ 
     P1OUT &= ~BIT3; // set clock high
     output = spi_data_out & 1;
     if(output == 1){ 
@@ -94,6 +94,56 @@ void spi_Master::spiSend_u16(unsigned int spi_data_out){
   P2OUT &= ~BIT0; // close SS bit
   delayMicroseconds(5);
 }
+
+// SPI Send methods to help make selection of data type sending easy
+
+void spi_Master::spiSend_Header(unsigned short int spi_data_out){
+  if(spi_data_out < 16){
+    spiSend(spi_data_out,4);
+  }else{
+  #ifdef SERIAL
+    Serial.println("error: invalid variable size");
+  #endif}
+  }
+}
+
+void spi_Master::spiSend_u8(unsigned short int spi_data_out){
+  if(sizeof(spi_data_out==1){
+    spiSend(spi_data_out,8);
+  }else{
+  #ifdef SERIAL
+    Serial.println("error: invalid variable size");
+  #endif}
+  }
+}
+
+void spi_Master::spiSend_u16(unsigned int spi_data_out){
+  if(sizeof(spi_data_out==2){
+    spiSend(spi_data_out,16);
+  }else{
+  #ifdef SERIAL
+    Serial.println("error: invalid variable size");
+  #endif}
+  }
+}
+
+void spi_Master::spiSend_u32(unsigned long int spi_data_out){
+  if(sizeof(spi_data_out==4){
+    spiSend(spi_data_out,32);
+  }else{
+  #ifdef SERIAL
+    Serial.println("error: invalid variable size");
+  #endif}
+  }
+}
+
+/******************************************************
+*               SPI Slave Declarations                *
+
+*                                                     *
+
+*                                                     *
+******************************************************/
 
 spi_Slave::spi_Slave(){
   spi_Slave_Setup();
@@ -113,7 +163,7 @@ void spi_Slave::spi_Slave_Setup(){
    P2DIR &= ~BIT0; // setup pin 2.0 as SS
 }
 
-unsigned int spi_Slave::spiReceive_u16(){
+unsigned int spi_Slave::spiReceive(length){
 
   /* Function reads a 16 bit character to the slave driver
   ***** GENERALLY USED WITH AN INTERRUPT ENABLED ON THE SLAVE *****
@@ -129,7 +179,7 @@ unsigned int spi_Slave::spiReceive_u16(){
   int watchdog = 0; // setup watchdog
   P1OUT |= BIT5; // give acknowledge to the master
 
-  for(int i = 0; i < 16; i++){
+  for(int i = 0; i < length; i++){
 
     watchdog=0; // reset watchdog
     while(((P1IN & BIT3) >> 3) == 0){ // check for rising edge of clock
@@ -156,8 +206,17 @@ unsigned int spi_Slave::spiReceive_u16(){
         return 0;
       }
     }
-
   }
   P1OUT &= ~BIT5; // set acknowledge low 
   return spi_data_in; // return final value read
 }
+
+// SPI recieve methods, to make it easy for the user predefined length recieve methods are defined
+// Once header is better implemented the header method will be able to take care of running the necessary 
+// method required. 
+
+unsigned short int spi_Slave::spiReceive_header(){unsigned int spi_data_in = spiReceive(4); return spi_data_in}
+
+unsigned short int spi_Slave::spiReceive_u8(){unsigned int spi_data_in = spiReceive(8); return spi_data_in}
+unsigned int spi_Slave::spiReceive_u16(){unsigned int spi_data_in = spiReceive(16); return spi_data_in}
+unsigned long int spi_Slave::spiReceive_u32(){unsigned int spi_data_in = spiReceive(32); return spi_data_in}
