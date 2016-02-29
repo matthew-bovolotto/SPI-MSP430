@@ -13,8 +13,19 @@ Contains important functionality for pseudo spi including:
 
 To be implemented:
 
-- SPI 16 bit header mask to deal with different length messages
+- SPI 4 bit header mask to deal with different length messages
 as well as different types
+
+- Header will define type of integer being passed
+
+0000 - Null value, no more values
+xx01 - 8 bit integer
+xx10 - 16 bit integer
+xx11 - 32 bit integer
+
+top 2 values are empty at the moment
+
+after header the microcontroller will begin receiving data of the specified type until null value is received 
 
 *************************************************/
 
