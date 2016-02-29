@@ -3,7 +3,6 @@
 class spi_Master{
   public: 
     spi_Master();
-    void spi_Master_Setup();
     void spiSend_Header(unsigned short int spi_data_out);
 
     void spiSend_u8(unsigned short int spi_data_out);
@@ -12,12 +11,12 @@ class spi_Master{
 
   private: 
   	void spiSend(unsigned int spi_data_out, int length);
+  	void spi_Master_Setup();
 };
 
 class spi_Slave{
   public:
     spi_Slave();
-    void spi_Slave_Setup();
     unsigned short int spiReceive_header();
 
     unsigned short int spiReceive_u8();
@@ -26,4 +25,5 @@ class spi_Slave{
 
   private:
   	unsigned int spiReceive();
+  	void spi_Slave_Setup();
 };
