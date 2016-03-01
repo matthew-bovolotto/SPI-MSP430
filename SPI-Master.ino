@@ -18,17 +18,13 @@ void setup() {
 }
 
 spi_Master spi;
+int spi_successful;
 
 void loop() {
-  spi.spiSend_u16(0);
-  spi.spiSend_u16(1);
-  spi.spiSend_u16(2);
-  spi.spiSend_u16(3);
-  spi.spiSend_u16(4);
-  spi.spiSend_u16(5);
-  spi.spiSend_u16(6);
-  spi.spiSend_u16(7);
-  spi.spiSend_u16(8);
+  spi.spiSend_Header(0b0010);
+  spi_successful = spi.spiSend_u16(25);
+  if(spi_successful > 0){spi_successful=1;}
+
   #ifdef SERIAL 
     Serial.println("successful transfer");
   #endif  
