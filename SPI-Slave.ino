@@ -22,7 +22,7 @@ void loop(){
   // Print out array of variables taken in by SPI
 
     #ifdef SERIAL
-      Serial.print(array[checkvalue]);
+      Serial.print(checkvalue);
     #else
       delayMicroseconds(10);
     #endif
