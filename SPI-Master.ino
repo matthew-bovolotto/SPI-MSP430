@@ -1,6 +1,8 @@
 #include <msp430.h>
 #include <spi_library.h>
 // #undef SERIAL
+#define SERIAL
+
 
 
 // the setup routine runs once when you press reset:
@@ -17,18 +19,21 @@ void setup() {
 
 }
 
-spi_Master spi;
-int spi_successful;
 
-void loop() {
-  spi.spiSend_Header(0b0010);
-  spi_successful = spi.spiSend_u16(25);
-  if(spi_successful > 0){spi_successful=1;}
 
+void loop(){
+  spi_Master spi;
+  unsigned int hello = 2;
+  unsigned int hello2 = 15;
+  spi.spiSend_Header(hello);
+  delayMicroseconds(25);  
+  spi.spiSend_u16(hello2);
+  delay(10);
+  
   #ifdef SERIAL 
     Serial.println("successful transfer");
   #endif  
-  delay(1000);
+  
 }
 
 

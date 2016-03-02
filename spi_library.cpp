@@ -51,7 +51,7 @@ void spi_Master::spi_Master_Setup(){
   #endif
 }
 
-void spi_Master::spiSend(unsigned long int spi_data_out, int length){
+void spi_Master::spiSend(unsigned int spi_data_out, int length){
   
   /* Function writes a 16 bit character to the slave driver
 
@@ -63,17 +63,16 @@ void spi_Master::spiSend(unsigned long int spi_data_out, int length){
   unsigned int watchdog = 0; //set up watchdog
   
   P2OUT |= BIT0; // force SS high to notify slave to begin receiving
-  
   while(((P1IN & BIT5) >> 5) == 0){ // Wait for Slave acknowledgement
-    watchdog+=1; 
+    watchdog+=1;
     if(watchdog > 160){ // check for watchdog timeout
       P2OUT &= ~BIT0; 
       #ifdef SERIAL
         Serial.println("error: watchdog timeout");
       #endif
-      return 0;
+      return;
     }
-    delayMicroseconds(10);
+    delayMicroseconds(100);
   }
   
   unsigned long int output = 0; // setup masked output variable
@@ -97,13 +96,13 @@ void spi_Master::spiSend(unsigned long int spi_data_out, int length){
 
 // SPI Send methods to help make selection of data type sending easy
 
-spi_Master::spiSend_Header(unsigned long int spi_data_out){spiSend(spi_data_out,4); return 1;}
+void spi_Master::spiSend_Header(unsigned int spi_data_out){spiSend(spi_data_out,4);}
 
-spi_Master::spiSend_u8(unsigned long int spi_data_out){spiSend(spi_data_out,8); return 1;}
+void spi_Master::spiSend_u8(unsigned long int spi_data_out){spiSend(spi_data_out,8);}
 
-spi_Master::spiSend_u16(unsigned long int spi_data_out){spiSend(spi_data_out,16); return 1;}
+void spi_Master::spiSend_u16(unsigned long int spi_data_out){spiSend(spi_data_out,16);}
 
-spi_Master::spiSend_u32(unsigned long int spi_data_out){spiSend(spi_data_out,32); return 1;}
+void spi_Master::spiSend_u32(unsigned long int spi_data_out){spiSend(spi_data_out,32);}
 
 /******************************************************
 *               SPI Slave Declarations                *
@@ -131,7 +130,7 @@ void spi_Slave::spi_Slave_Setup(){
    P2DIR &= ~BIT0; // setup pin 2.0 as SS
 }
 
-unsigned long int spi_Slave::spiReceive(length){
+unsigned long int spi_Slave::spiReceive(int length){
 
   /* Function reads a 16 bit character to the slave driver
   ***** GENERALLY USED WITH AN INTERRUPT ENABLED ON THE SLAVE *****
@@ -185,18 +184,23 @@ unsigned long int spi_Slave::spiReceive(length){
 
 unsigned long int spi_Slave::spiReceive_header(){
   unsigned long int spi_data_in = spiReceive(4);
-  switch(spi_data_in):
+  switch(spi_data_in){
     case 0b0000: 
-      return 0;
-    case 0b0001:
-      spi_data_in = spiReceive_u8(8);
+      spi_data_in = 0;
+			break;
+    case 1:
+      spi_data_in = spiReceive_u8();
       break;
-    case 0b0010:
-      spi_data_in = spiReceive_u16(16);
+    case 2:
+      spi_data_in = spiReceive_u16();
       break;
-    case 0b0011:
-      spi_data_in = spiReceive_u32(32);
+    case 3:
+      spi_data_in = spiReceive_u32();
       break;
+		default:
+			spi_data_in = 0;
+			break;
+	}
   return spi_data_in;
 }
 
