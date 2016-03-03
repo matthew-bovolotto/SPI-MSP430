@@ -1,3 +1,8 @@
+//Definitions
+#define SERIAL
+//undef SERIAL
+
+//Includes
 #include <Energia.h>
 #include <msp430.h>
 #include <spi_library.h>
@@ -25,11 +30,9 @@ xx11 - 32 bit integer
 
 top 2 values are empty at the moment
 
-after header the microcontroller will begin receiving data of the specified type until null value is received 
+after header the microcontroller will begin receiving data of the specified type until null value is received
 
 *************************************************/
-
-// #undef SERIAL
 
 spi_Master::spi_Master(){
   spi_Master_Setup();
@@ -51,36 +54,36 @@ void spi_Master::spi_Master_Setup(){
   #endif
 }
 
-void spi_Master::spiSend(unsigned int spi_data_out, int length){
-  
+bool spi_Master::spiSend(unsigned int spi_data_out, int length){
+
   /* Function writes a 16 bit character to the slave driver
 
   1. Set SS high to signal beginning of write
   2. Wait until acknowledged by the slave
   3. Begin passing 16 bits of data
   */
-  
+
   unsigned int watchdog = 0; //set up watchdog
-  
+
   P2OUT |= BIT0; // force SS high to notify slave to begin receiving
   while(((P1IN & BIT5) >> 5) == 0){ // Wait for Slave acknowledgement
     watchdog+=1;
     if(watchdog > 160){ // check for watchdog timeout
-      P2OUT &= ~BIT0; 
+      P2OUT &= ~BIT0;
       #ifdef SERIAL
         Serial.println("error: watchdog timeout");
       #endif
-      return;
+      return 1;
     }
     delayMicroseconds(100);
   }
-  
+
   unsigned long int output = 0; // setup masked output variable
 
-  for(int i = 0; i < length; i++){ 
+  for(int i = 0; i < length; i++){
     P1OUT &= ~BIT3; // set clock high
     output = spi_data_out & 1;
-    if(output == 1){ 
+    if(output == 1){
       P1OUT |= BIT4; // set MOSI to 1
     }else{
       P1OUT &= ~BIT4; // set MOSI to 0
@@ -88,21 +91,22 @@ void spi_Master::spiSend(unsigned int spi_data_out, int length){
     delayMicroseconds(10);
     P1OUT |= BIT3;  // set clock low
     delayMicroseconds(10);
-    spi_data_out = spi_data_out >> 1; // shift data out by 1 
+    spi_data_out = spi_data_out >> 1; // shift data out by 1
   }
   P2OUT &= ~BIT0; // close SS bit
   delayMicroseconds(5);
+  return 0;
 }
 
 // SPI Send methods to help make selection of data type sending easy
 
-void spi_Master::spiSend_Header(unsigned int spi_data_out){spiSend(spi_data_out,4);}
+bool spi_Master::spiSend_Header(unsigned int spi_data_out){bool status = spiSend(spi_data_out,4); return status;}
 
-void spi_Master::spiSend_u8(unsigned long int spi_data_out){spiSend(spi_data_out,8);}
+bool spi_Master::spiSend_u8(unsigned long int spi_data_out){bool status = spiSend(spi_data_out,8); return status;}
 
-void spi_Master::spiSend_u16(unsigned long int spi_data_out){spiSend(spi_data_out,16);}
+bool spi_Master::spiSend_u16(unsigned long int spi_data_out){bool status = spiSend(spi_data_out,16); return status;}
 
-void spi_Master::spiSend_u32(unsigned long int spi_data_out){spiSend(spi_data_out,32);}
+bool spi_Master::spiSend_u32(unsigned long int spi_data_out){bool status = spiSend(spi_data_out,32); return status;}
 
 /******************************************************
 *               SPI Slave Declarations                *
@@ -117,7 +121,7 @@ spi_Slave::spi_Slave(){
 }
 
 void spi_Slave::spi_Slave_Setup(){
-  
+
   /* Begin Setup of Pseudo SPI
    P1.3 - CLK
    P1.4 - MOSI
@@ -134,7 +138,7 @@ unsigned long int spi_Slave::spiReceive(int length){
 
   /* Function reads a 16 bit character to the slave driver
   ***** GENERALLY USED WITH AN INTERRUPT ENABLED ON THE SLAVE *****
-  
+
   1. Send acknowledge signal to master device
   2. Wait for high clock signal and read data when valid edge
   3. Wait for next clock edge to read until 16 bits received
@@ -174,18 +178,18 @@ unsigned long int spi_Slave::spiReceive(int length){
       }
     }
   }
-  P1OUT &= ~BIT5; // set acknowledge low 
+  P1OUT &= ~BIT5; // set acknowledge low
   return spi_data_in; // return final value read
 }
 
 // SPI recieve methods, to make it easy for the user predefined length recieve methods are defined
-// Once header is better implemented the header method will be able to take care of running the necessary 
-// method required. 
+// Once header is better implemented the header method will be able to take care of running the necessary
+// method required.
 
 unsigned long int spi_Slave::spiReceive_header(){
   unsigned long int spi_data_in = spiReceive(4);
   switch(spi_data_in){
-    case 0b0000: 
+    case 0b0000:
       spi_data_in = 0;
 			break;
     case 1:
