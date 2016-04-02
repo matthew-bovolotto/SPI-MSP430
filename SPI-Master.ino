@@ -1,40 +1,65 @@
 #include <msp430.h>
 #include <spi_library.h>
 #define SERIAL
-// #undef SERIAL
+#undef SERIAL
 
 // the setup routine runs once when you press reset:
 
 void setup() {
-  #ifdef SERIAL
-    Serial.begin(9600);
-    Serial.println("-Board Start Successful-");
-  #endif
+#ifdef SERIAL
+  Serial.begin(9600);
+  Serial.println("-Board Start Successful- M");
+#endif
 }
 
-void loop(){
-  volatile int return_value = 0;
-  unsigned int spi_data_out = 1;
-  spi_Master spi; //create object spi -- setups all required pins for spi
+int return_value = 0;
+unsigned int spi_data_out[4] = {0xAA55,0xAA55,0xAA55,0xAA55};
+unsigned int spi_data_out2[4] = {0x55AA,0x55AA,0x55AA,0x55AA};
 
-  for(int i = 0; i < 14; i++){
-    spi_data_out = spi_data_out << 1; // left shift through 2 -> 65536
+void loop(){
+    
+  //if(Serial.available()){
+    //spi_data_out = Serial.read() - 48;
+  
+  for(int i = 0; i<4; i++){
+    
+    spi_Master spi; //create object spi -- setups all required pins for spi
 
     do{
       return_value = spi.spiSend_Header(2); // sends header with value 2 -- 16 bit unsigned integer
-      delayMicroseconds(100);
-    }while(return_value > 0); // check to make sure header didnt timeout
+ 
+    }
+    while(return_value > 0); // check to make sure header didnt timeout
 
-    delayMicroseconds(25);
 
     do{
-      return_value = spi.spiSend_u16(spi_data_out); // sends 16 bit value
-      delayMicroseconds(100);
-    }while(return_value > 0); // check to make sure data didnt timeout
+      return_value = spi.spiSend_u16(spi_data_out[i]); // sends 16 bit val
 
-    delay(10);  
+    }
+    while(return_value > 0); // check to make sure data didnt timeout
+  } 
+    
+  for(int i = 0; i<4; i++){
+    
+    spi_Master spi; //create object spi -- setups all required pins for spi
+
+    do{
+      return_value = spi.spiSend_Header(2); // sends header with value 2 -- 16 bit unsigned integer
+ 
+    }
+    while(return_value > 0); // check to make sure header didnt timeout
+
+
+    do{
+      return_value = spi.spiSend_u16(spi_data_out2[i]); // sends 16 bit value
+
+    }
+    while(return_value > 0); // check to
+    
+    #ifdef SERIAL
+    Serial.print("successful transfer  ");
+    Serial.println(spi_data_out);
+    #endif
   }
-  #ifdef SERIAL
-    Serial.println("successful transfer");
-  #endif
 }
+

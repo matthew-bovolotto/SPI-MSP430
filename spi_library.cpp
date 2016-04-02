@@ -1,6 +1,4 @@
 //Definitions
-#define SERIAL
-//undef SERIAL
 
 //Includes
 #include <Energia.h>
@@ -94,6 +92,7 @@ bool spi_Master::spiSend(unsigned int spi_data_out, int length){
     spi_data_out = spi_data_out >> 1; // shift data out by 1
   }
   P2OUT &= ~BIT0; // close SS bit
+  P1OUT &= ~BIT4;
   delayMicroseconds(5);
   return 0;
 }
@@ -104,7 +103,7 @@ bool spi_Master::spiSend_Header(unsigned int spi_data_out){bool status = spiSend
 
 bool spi_Master::spiSend_u8(unsigned long int spi_data_out){bool status = spiSend(spi_data_out,8); return status;}
 
-bool spi_Master::spiSend_u16(unsigned long int spi_data_out){bool status = spiSend(spi_data_out,16); return status;}
+bool spi_Master::spiSend_u16(unsigned long int spi_data_out){bool status = spiSend(spi_data_out,17); return status;}
 
 bool spi_Master::spiSend_u32(unsigned long int spi_data_out){bool status = spiSend(spi_data_out,32); return status;}
 
@@ -158,7 +157,9 @@ unsigned long int spi_Slave::spiReceive(int length){
       if(watchdog > 1000){  //check watchdog
         P1OUT &= ~BIT5;  //set acknowledge know in timeout case
         #ifdef SERIAL
-          Serial.println("error: watchdog timeout");
+          if(watchdog % 100){
+          Serial.println("error: watchdog timeout 1");
+          }
         #endif
         return 0;
       }
@@ -170,9 +171,11 @@ unsigned long int spi_Slave::spiReceive(int length){
     while(((P1IN & BIT3) >> 3) == 1){ // check for falling edge of clock
       watchdog+=1;
       if(watchdog > 1000){   //check watchdog
-        P1OUT &= ~BIT5; //set acknowledge know in timeout case
+        P1OUT &= ~BIT5; //set acknowledge low in timeout case
         #ifdef SERIAL
-          Serial.println("error: watchdog timeout");
+          if(watchdog % 100){
+          Serial.println("error: watchdog timeout 2");
+          }
         #endif
         return 0;
       }
@@ -209,5 +212,15 @@ unsigned long int spi_Slave::spiReceive_header(){
 }
 
 unsigned long int spi_Slave::spiReceive_u8(){unsigned long int spi_data_in = spiReceive(8); return spi_data_in;}
-unsigned long int spi_Slave::spiReceive_u16(){unsigned long int spi_data_in = spiReceive(16); return spi_data_in;}
+unsigned long int spi_Slave::spiReceive_u16(){unsigned long int spi_data_in = spiReceive(17); return spi_data_in;}
 unsigned long int spi_Slave::spiReceive_u32(){unsigned long int spi_data_in = spiReceive(32); return spi_data_in;}
+
+void spi_Slave::spiReceive_u16x4(unsigned int checkvalue[]){
+  for(int i = 0; i<4;){
+    if((P2IN & BIT0) == 1){ // check if SS bit has been set high
+       checkvalue[i] = spiReceive_header();
+       i++;
+       delayMicroseconds(20);
+    }
+  }
+}

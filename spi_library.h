@@ -20,6 +20,7 @@ class spi_Slave{
     unsigned long int spiReceive_u8();
     unsigned long int spiReceive_u16();
     unsigned long int spiReceive_u32();
+    void spiReceive_u16x4(unsigned int[]);
 
   private:
   	unsigned long int spiReceive(int length);
