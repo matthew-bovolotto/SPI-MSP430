@@ -1,7 +1,8 @@
 #include <msp430.h>
 #include <spi_library.h>
+#include <IR_receiver.h>
 #define SERIAL
-#undef SERIAL
+
 
 // the setup routine runs once when you press reset:
 
@@ -15,9 +16,15 @@ void setup() {
 int return_value = 0;
 unsigned int spi_data_out[4] = {0xAA55,0xAA55,0xAA55,0xAA55};
 unsigned int spi_data_out2[4] = {0x55AA,0x55AA,0x55AA,0x55AA};
+unsigned int IR_frame[4] = {0,0,0,0};
+int threshold = 200;
+int threshcount = 0;
 
 void loop(){
-    
+  
+  IR_receiver IRreceive;
+  
+  IRreceive.IR_get(IR_frame, threshold, threshcount);
   //if(Serial.available()){
     //spi_data_out = Serial.read() - 48;
   
@@ -33,10 +40,13 @@ void loop(){
 
 
     do{
-      return_value = spi.spiSend_u16(spi_data_out[i]); // sends 16 bit val
+      return_value = spi.spiSend_u16(IR_frame[i]); // sends 16 bit val
 
     }
     while(return_value > 0); // check to make sure data didnt timeout
+    #ifdef SERIAL
+    Serial.println(IR_frame[i], BIN);
+    #endif
   } 
     
   for(int i = 0; i<4; i++){
@@ -51,15 +61,11 @@ void loop(){
 
 
     do{
-      return_value = spi.spiSend_u16(spi_data_out2[i]); // sends 16 bit value
+      return_value = spi.spiSend_u16(IR_frame[i]); // sends 16 bit value
 
     }
     while(return_value > 0); // check to
     
-    #ifdef SERIAL
-    Serial.print("successful transfer  ");
-    Serial.println(spi_data_out);
-    #endif
   }
 }
 

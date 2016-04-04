@@ -1,7 +1,8 @@
 #include <msp430.h>
 #include <spi_library.h>
 #include <disp_frame.h>
-//#define SERIAL
+
+#define SERIAL
 
 void spiReceive_u16x4(unsigned int[]);
 
@@ -30,14 +31,14 @@ void loop(){
       #endif
    
      for(int i=0; i<8; i+=2){
-       frame[i] = checkvalue[i/2] & 0xFF;
+       frame[i] = checkvalue[i/2] & 0xFF ;
        frame[i+1] = (checkvalue[i/2] & 0xFF00) >> 8;
     }
     
       #ifdef SERIAL
       Serial.print("Checkvalue = ");
       for(int i=0; i<8; i++){
-      Serial.pr intln(frame[i], HEX);
+      Serial.println(frame[i], HEX);
       }
       #endif
     
